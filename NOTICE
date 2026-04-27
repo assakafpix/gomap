@@ -1,0 +1,57 @@
+gomap
+Copyright 2026 gomap contributors
+
+This product includes software developed by The Nmap Project (https://nmap.org).
+
+================================================================================
+EMBEDDED THIRD-PARTY DATA: nmap-service-probes
+================================================================================
+
+The file `nmap-service-probes` distributed in this repository (and embedded
+into the gomap binary at compile time via go:embed) is the service-detection
+fingerprint database from The Nmap Project. It is the work of the Nmap
+maintainers and the broader security community over more than two decades.
+
+Source: https://github.com/nmap/nmap/blob/master/nmap-service-probes
+Copyright (C) 1996-2026 Nmap Software LLC ("The Nmap Project")
+
+This file is licensed under the Nmap Public Source License (NPSL), a modified
+GNU GPL. The full license text is available at:
+
+    https://nmap.org/npsl/
+
+Key points relevant to redistribution:
+
+  * The NPSL is a copyleft license, similar to GPL v2.
+  * It places obligations on derivative works that include or modify
+    nmap-service-probes (or any other NPSL-covered file).
+  * It explicitly disallows certain commercial sublicensing scenarios that
+    standard GPL would permit.
+  * Embedding nmap-service-probes into a binary creates a "Combined Work"
+    in NPSL terms; redistribution of that binary is subject to the NPSL's
+    source-availability and notice requirements.
+
+If you are redistributing the gomap binary or a fork, please:
+
+  1. Read the NPSL in full and confirm your distribution complies.
+  2. Make the NPSL text and this NOTICE accessible to recipients.
+  3. Make the source of any modifications to nmap-service-probes available
+     under the NPSL.
+  4. If unsure about commercial use, contact The Nmap Project for an
+     alternative license: sales@insecure.com.
+
+The Apache-2.0 license that covers gomap's own code (LICENSE file) does NOT
+override these obligations for the embedded probe database.
+
+================================================================================
+THIRD-PARTY GO MODULES (linked, not embedded)
+================================================================================
+
+  github.com/dlclark/regexp2           MIT License
+  golang.org/x/net                     BSD-3-Clause License
+
+Their license texts are available in their respective module directories
+under $GOPATH/pkg/mod, or at:
+
+  https://github.com/dlclark/regexp2/blob/master/LICENSE
+  https://cs.opensource.google/go/x/net/+/master:LICENSE

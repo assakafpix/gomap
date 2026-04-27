@@ -1,0 +1,17 @@
+# Build artifacts
+gomap
+gomap.exe
+*.test
+*.out
+*.prof
+coverage.out
+coverage.html
+
+# Editors and local tool state
+.idea/
+.vscode/
+*.swp
+
+# OS junk
+.DS_Store
+Thumbs.db
