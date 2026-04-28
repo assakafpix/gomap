@@ -118,7 +118,13 @@ func (e *Engine) runProbeLoop(
 	target string,
 	result *DetectResult,
 ) loopOutcome {
-	const maxEmptyBeforeSkip = 3 // skip non-NULL probes after this many empties
+	// Skip remaining probes only after this many SILENT empties (timeouts,
+	// not peer-closes). Peer-closes are cheap (~1 ms each) and don't waste
+	// scan time, so counting them toward the skip threshold needlessly
+	// short-circuits services that close on garbage probes but respond to
+	// the right one (e.g. modern Postgres rejects \r\n\r\n with RST but
+	// returns a diagnostic ERROR packet to SMBProgNeg's malformed payload).
+	const maxSilentBeforeSkip = 3
 
 	var out loopOutcome
 
@@ -132,10 +138,12 @@ func (e *Engine) runProbeLoop(
 			continue
 		}
 
-		// Save scan time on dead ports: after a few empty responses, skip
-		// remaining non-NULL probes — they're unlikely to succeed where
-		// targeted ones already failed.
-		if out.emptyResponses >= maxEmptyBeforeSkip && probe.Name != "NULL" {
+		// Skip remaining non-NULL probes if too many silent timeouts seen.
+		// Each silent probe burns its full read deadline (typically several
+		// seconds), so this saves real time on ports that genuinely don't
+		// respond to anything. Peer-closes don't contribute to the count.
+		silentEmpties := out.emptyResponses - out.peerClosedResponses
+		if silentEmpties >= maxSilentBeforeSkip && probe.Name != "NULL" {
 			continue
 		}
 
@@ -161,6 +169,7 @@ func (e *Engine) runProbeLoop(
 			continue
 		}
 		out.emptyResponses = 0
+		out.peerClosedResponses = 0
 
 		if result.Banner == "" {
 			result.Banner = sanitize(data, 256)
@@ -193,6 +202,14 @@ func (e *Engine) runProbeLoop(
 //  1. NULL probe first (always — its matches are nmap's most generic).
 //  2. Probes whose `ports`/`sslports` directive includes this port.
 //  3. All other probes within the configured intensity threshold.
+//
+// Per-port targeted probes bypass the rarity/intensity gate. nmap's
+// documented behavior is that a probe's `ports` directive is an
+// explicit "if you see this port, run me" signal — the probe author
+// has already decided this probe is relevant for that port. Without
+// the bypass, niche services on their well-known ports get missed at
+// default intensity (e.g. Redis on 6379, whose `redis-server` probe
+// is rarity 8).
 func (e *Engine) probeOrder(port int) []int {
 	var order []int
 	seen := make(map[int]bool)
@@ -202,8 +219,9 @@ func (e *Engine) probeOrder(port int) []int {
 		seen[idx] = true
 	}
 
+	// Targeted probes — run regardless of rarity.
 	for i, p := range e.Probes {
-		if seen[i] || p.Rarity > e.Intensity {
+		if seen[i] {
 			continue
 		}
 		if slices.Contains(p.Ports, port) || slices.Contains(p.SSLPorts, port) {
@@ -212,6 +230,7 @@ func (e *Engine) probeOrder(port int) []int {
 		}
 	}
 
+	// Untargeted probes — gated by intensity.
 	for i, p := range e.Probes {
 		if seen[i] || p.Rarity > e.Intensity {
 			continue
