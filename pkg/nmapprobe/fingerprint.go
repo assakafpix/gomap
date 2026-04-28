@@ -21,6 +21,10 @@ var (
 	genericPOP3Re = regexp.MustCompile(`^\+OK`)
 	genericIMAPRe = regexp.MustCompile(`(?i)^\* OK.*imap`)
 	genericVNCRe  = regexp.MustCompile(`^RFB [0-9]{3}\.[0-9]{3}`)
+	// IRC: numeric reply ":hostname NNN target ..." or NOTICE before registration.
+	// Catches both happy-path banners (NOTICE AUTH :*** Looking up...) and
+	// rate-limited / banned responses (":host 465 * :You're banned!").
+	genericIRCRe = regexp.MustCompile(`(?m)^(?::[\w.-]+ \d{3} |NOTICE (?:AUTH|\*) :)`)
 )
 
 // genericFingerprint identifies the protocol of a captured banner using
@@ -50,6 +54,8 @@ func genericFingerprint(banner string) (proto, info string) {
 		return "imap", ""
 	case genericVNCRe.MatchString(banner):
 		return "vnc", ""
+	case genericIRCRe.MatchString(banner):
+		return "irc", ""
 	case len(banner) >= 2 && strings.HasPrefix(banner, "\x05"):
 		// SOCKS5 method-selection response: 0x05 followed by method byte.
 		return "socks5", ""

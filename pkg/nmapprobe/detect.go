@@ -82,6 +82,14 @@ func (e *Engine) Detect(ctx context.Context, host string, port int) DetectResult
 		}
 	}
 
+	// Protocol-specific enrichment: when we know the protocol but the
+	// nmap match line didn't carry product/version (because the upstream
+	// signature only fires on a generic handshake response), do a real
+	// application-level handshake to fill in the gaps.
+	if result.Protocol == "amqp" && result.Version == "" {
+		e.enrichAMQP(ctx, host, port, &result)
+	}
+
 	return result
 }
 
