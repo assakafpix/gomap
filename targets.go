@@ -22,7 +22,7 @@ type target struct {
 //  1. Positional args (cross-joined with the port list, or used directly
 //     if they're already in host:port form).
 //  2. -iL <file>: appended after positionals.
-//  3. Stdin (naabu format): only consulted when neither of the above
+//  3. Stdin (host[:port] lines): only consulted when neither of the above
 //     produced any targets, so explicit args always win over a piped tty.
 func collectTargets(opts *cliOptions) ([]target, error) {
 	targets, err := buildTargets(opts.positional, opts.portList, opts.inputFile)
@@ -77,7 +77,7 @@ func buildTargets(positional []string, portList []int, inputFile string) ([]targ
 	return targets, nil
 }
 
-// readFromStdin parses naabu-style host:port lines from stdin. Returns nil
+// readFromStdin parses host[:port] lines from stdin. Returns nil
 // when stdin is a terminal (so an interactive `gomap` invocation doesn't
 // block waiting for piped input that isn't coming).
 func readFromStdin() ([]target, error) {

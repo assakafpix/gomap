@@ -10,7 +10,7 @@ It exists because nmap's packet-crafting design can't ride on top of a SOCKS5 tu
 
 You probably want this if any of these are true:
 
-- You run port discovery through a SOCKS5 proxy (with `naabu`, `masscan-socks`, etc.) and you need service identification on the same path.
+- You run port discovery through a SOCKS5 proxy and you need service identification on the same path.
 - You can't deploy nmap (containerized environments, no raw socket privileges, sandboxed CI).
 - You want CPE 2.3 output ready to feed into a vulnerability database.
 - You don't want to ship a companion container just to run `nmap -sV` over an SSH tunnel.
@@ -45,8 +45,8 @@ gomap --top-ports 100 --proxy socks5://user:pass@proxy:1080 10.0.0.1
 # Full port range with maximum probe intensity
 gomap -p- --version-intensity 9 target.example.com
 
-# Pipe from naabu (the typical recon flow)
-naabu -host target -silent | gomap --proxy socks5://proxy:1080
+# Pipe targets from any port scanner
+echo target.example.com:8443 | gomap --proxy socks5://proxy:1080
 
 # Read targets from file (nmap's -iL)
 gomap -iL targets.txt --proxy socks5://proxy:1080 -oJ
@@ -60,7 +60,7 @@ gomap -iL targets.txt --proxy socks5://proxy:1080 -oJ
 | `-p 22,80,443` | Port list (also `-p1-1024`, `-p-` for all 65535) |
 | `--top-ports N` | Scan the top N most common ports (10, 100, 1000) |
 | `-iL file.txt` | Read targets from file |
-| `--version-intensity 0-9` | Probe intensity (default 7, like nmap) |
+| `--version-intensity 0-9` | Probe intensity (default 9, max — pass `--version-light` for nmap-equivalent default of 2) |
 | `--version-light` / `--version-all` | Aliases for intensity 2 / 9 |
 | `--max-parallelism N` (or `-c N`) | Concurrent probes (default 50) |
 | `--timeout 5s` | Per-probe timeout |
@@ -79,7 +79,7 @@ gomap scanme.nmap.org              # bare host — needs -p or --top-ports
 gomap scanme.nmap.org:22           # host:port — port from arg
 gomap host1 host2 host3 -p 80,443  # multiple bare hosts × port list
 gomap -iL targets.txt              # one host[:port] per line
-naabu ... | gomap                  # stdin in naabu format
+cat ports.txt | gomap              # stdin: one host[:port] per line
 ```
 
 ## Comparison with nmap
@@ -108,7 +108,7 @@ We sometimes do better — never worse — because:
 ## Limitations
 
 - **TCP only.** No UDP service detection. Add a follow-up step if you need DNS/SNMP/NTP fingerprints.
-- **No host discovery.** `gomap` assumes the port is open. Pair it with `naabu` (or any port scanner) for full pipeline.
+- **No host discovery.** `gomap` assumes the port is reachable. Pair it with any port scanner upstream.
 - **No script engine.** No NSE equivalent. If you need post-detection enrichment (vuln checks, brute-forcing, screenshots) layer it separately — `nuclei`, `httpx`, etc.
 - **No raw packet probes.** SYN scans, fragmentation, OS detection — fundamentally incompatible with SOCKS5; use nmap directly when you need them.
 

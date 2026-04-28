@@ -57,8 +57,10 @@ func parseArgs(progName string, argv []string) (*cliOptions, bool) {
 		// Input
 		inputFile = fs.String("iL", "", "Input file with host or host:port lines")
 
-		// Service detection intensity
-		intensity  = fs.Int("version-intensity", 7, "Probe intensity 0-9")
+		// Service detection intensity. Default is 9 (max). On a short
+		// target list the extra probes cost negligible time but pull in
+		// rarity-8/9 patterns that nmap excludes at its default of 7.
+		intensity  = fs.Int("version-intensity", 9, "Probe intensity 0-9")
 		lightAlias = fs.Bool("version-light", false, "Alias for --version-intensity 2")
 		fullAlias  = fs.Bool("version-all", false, "Alias for --version-intensity 9")
 
@@ -238,7 +240,7 @@ var usageSections = []struct {
 		"Can pass hostnames, IP addresses, host:port pairs, or read from stdin/file.",
 		"Ex: scanme.nmap.org, 192.168.1.0/24, scanme.nmap.org:22",
 		"-iL <inputfilename>: Input from list of hosts/networks",
-		"--                  : (or no target) Read targets from stdin (naabu format)",
+		"--                  : (or no target) Read host[:port] lines from stdin",
 	}},
 	{"SCAN TECHNIQUES:", []string{
 		"-sV                 : Probe open ports to determine service/version info",
@@ -251,7 +253,7 @@ var usageSections = []struct {
 		"--top-ports <N>     : Scan <N> most common ports (10, 100, 1000)",
 	}},
 	{"SERVICE/VERSION DETECTION:", []string{
-		"--version-intensity <0-9>: Set intensity (default: 7, lighter: 0, all probes: 9)",
+		"--version-intensity <0-9>: Set intensity (default: 9, max)",
 		"--version-light          : Alias for --version-intensity 2",
 		"--version-all            : Alias for --version-intensity 9",
 	}},
@@ -274,7 +276,7 @@ var examples = []string{
 	"-sV -p22,80,443 scanme.nmap.org",
 	"--top-ports 100 --proxy socks5://user:pass@proxy:1080 10.0.0.1",
 	"-p- --version-intensity 9 target.example.com",
-	`naabu -host target -silent | gomap --proxy socks5://proxy:1080`,
+	"-iL targets.txt --proxy socks5://proxy:1080",
 	"-iL targets.txt --proxy socks5://proxy:1080 -oJ",
 }
 
