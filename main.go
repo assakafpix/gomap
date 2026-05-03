@@ -8,9 +8,7 @@
 package main
 
 import (
-	"bytes"
 	"context"
-	_ "embed"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -24,10 +22,7 @@ import (
 	"github.com/assakafpix/gomap/pkg/ports"
 )
 
-//go:embed nmap-service-probes
-var nmapServiceProbes []byte
-
-const version = "1.0.0"
+const version = "1.2.0"
 
 func main() {
 	opts, ok := parseArgs(os.Args[0], os.Args[1:])
@@ -82,19 +77,18 @@ func buildEngine(opts *cliOptions) (*nmapprobe.Engine, error) {
 	if !opts.silent {
 		fmt.Fprintf(os.Stderr, "[*] Loading nmap probe database...")
 	}
-	rawProbes, err := nmapprobe.Parse(bytes.NewReader(nmapServiceProbes))
+	engine, err := nmapprobe.DefaultEngine(d, opts.timeout, opts.intensity)
 	if err != nil {
-		return nil, fmt.Errorf("parse nmap probes: %w", err)
+		return nil, fmt.Errorf("load nmap probes: %w", err)
 	}
-	compiled := nmapprobe.CompileProbes(rawProbes)
 	if !opts.silent {
 		total := 0
-		for _, p := range compiled {
+		for _, p := range engine.Probes {
 			total += len(p.Matches) + len(p.SoftMatches)
 		}
-		fmt.Fprintf(os.Stderr, " %d probes, %d signatures loaded\n", len(compiled), total)
+		fmt.Fprintf(os.Stderr, " %d probes, %d signatures loaded\n", len(engine.Probes), total)
 	}
-	return nmapprobe.NewEngine(compiled, d, opts.timeout, opts.intensity), nil
+	return engine, nil
 }
 
 // announceScan prints the scan banner ([*] Using proxy / [*] Scanning ...).

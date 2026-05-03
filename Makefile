@@ -23,5 +23,5 @@ clean:
 # Refresh the embedded nmap probe database from upstream.
 update-probes:
 	curl -sSL https://raw.githubusercontent.com/nmap/nmap/master/nmap-service-probes \
-	     -o nmap-service-probes
+	     -o pkg/nmapprobe/nmap-service-probes
 	@echo "Probe database refreshed. Don't forget to commit and rebuild."

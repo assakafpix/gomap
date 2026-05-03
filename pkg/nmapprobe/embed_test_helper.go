@@ -2,28 +2,17 @@ package nmapprobe
 
 import (
 	"bytes"
-	"os"
 	"testing"
 )
 
-// loadEmbeddedForTest reads nmap-service-probes from the project root for tests.
-// We don't go:embed it here to avoid duplicating the file in another build.
+// loadEmbeddedForTest parses the nmap-service-probes file embedded in this
+// package. Tests use it to exercise the engine against the real probe DB
+// without each test having to re-parse it themselves.
 func loadEmbeddedForTest(t *testing.T) []Probe {
 	t.Helper()
-	for _, path := range []string{
-		"../../nmap-service-probes",
-		"../../../nmap-service-probes",
-		"nmap-service-probes",
-	} {
-		data, err := os.ReadFile(path)
-		if err == nil {
-			probes, err := Parse(bytes.NewReader(data))
-			if err != nil {
-				t.Fatalf("parse: %v", err)
-			}
-			return probes
-		}
+	probes, err := Parse(bytes.NewReader(embeddedProbes))
+	if err != nil {
+		t.Fatalf("parse embedded probes: %v", err)
 	}
-	t.Skip("nmap-service-probes not found")
-	return nil
+	return probes
 }
