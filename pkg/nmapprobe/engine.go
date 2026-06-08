@@ -76,19 +76,20 @@ func NewEngine(probes []CompiledProbe, dialer proxy.ContextDialer, timeout time.
 // Open is true iff the TCP handshake succeeded. If Open is false, every
 // other field is zero-valued.
 type DetectResult struct {
-	Host     string   `json:"host"`
-	Port     int      `json:"port"`
-	Open     bool     `json:"open"`
-	Protocol string   `json:"protocol"`
-	TLS      bool     `json:"tls"`
-	Product  string   `json:"product,omitempty"`
-	Version  string   `json:"version,omitempty"`
-	Info     string   `json:"info,omitempty"`
-	Hostname string   `json:"hostname,omitempty"`
-	OS       string   `json:"os,omitempty"`
-	CPEs     []string `json:"cpes,omitempty"`
-	Banner   string   `json:"banner,omitempty"`
-	Probes   []string `json:"probes,omitempty"`
+	Host      string   `json:"host"`
+	Port      int      `json:"port"`
+	Open      bool     `json:"open"`
+	Protocol  string   `json:"protocol"`
+	TLS       bool     `json:"tls"`
+	Product   string   `json:"product,omitempty"`
+	Version   string   `json:"version,omitempty"`
+	Info      string   `json:"info,omitempty"`
+	Hostname  string   `json:"hostname,omitempty"`
+	OS        string   `json:"os,omitempty"`
+	CPEs      []string `json:"cpes,omitempty"`
+	Banner    string   `json:"banner,omitempty"`
+	BannerLen int      `json:"banner_len,omitempty"`
+	Probes    []string `json:"probes,omitempty"`
 }
 
 // lookupProbe returns the compiled probe by name, or nil if not loaded.

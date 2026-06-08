@@ -181,6 +181,7 @@ func (e *Engine) runProbeLoop(
 
 		if result.Banner == "" {
 			result.Banner = sanitize(data, 256)
+			result.BannerLen = len(data)
 		}
 
 		mr := e.tryAllMatches(probe, data)
